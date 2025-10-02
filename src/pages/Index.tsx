@@ -3,16 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Clock, Shield, Camera, Users } from 'lucide-react';
-import CloudSetupWarning from '@/components/CloudSetupWarning';
 
 const Index = () => {
   const { user, role, loading } = useAuth();
   const navigate = useNavigate();
-  const hasSupabaseEnv = import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-  if (!hasSupabaseEnv) {
-    return <CloudSetupWarning />;
-  }
 
   useEffect(() => {
     if (!loading && user) {
