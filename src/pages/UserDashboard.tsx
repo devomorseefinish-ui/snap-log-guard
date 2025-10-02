@@ -27,7 +27,7 @@ export default function UserDashboard() {
   }, [user]);
 
   const fetchRecords = async () => {
-    const { data } = await supabase
+    const { data } = await (supabase as any)
       .from('attendance_records')
       .select('*')
       .eq('user_id', user?.id)
@@ -111,13 +111,13 @@ export default function UserDashboard() {
 
       // Create attendance record
       const { error: insertError } = await supabase
-        .from('attendance_records')
+        .from('attendance_records' as any)
         .insert({
           user_id: user?.id,
           photo_url: publicUrl,
           notes: notes || null,
           status: 'present',
-        });
+        } as any);
 
       if (insertError) throw insertError;
 

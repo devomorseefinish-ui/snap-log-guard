@@ -42,16 +42,16 @@ export default function AdminDashboard() {
   }, []);
 
   const fetchUsers = async () => {
-    const { data } = await supabase
+    const { data } = await (supabase as any)
       .from('profiles')
       .select('*, user_roles(*)');
     
-    if (data) setUsers(data as UserWithRole[]);
+    if (data) setUsers(data);
   };
 
   const fetchRecords = async () => {
     const { data } = await supabase
-      .from('attendance_records')
+      .from('attendance_records' as any)
       .select('*, profiles(*)')
       .order('check_in_time', { ascending: false })
       .limit(50);
@@ -61,17 +61,17 @@ export default function AdminDashboard() {
 
   const fetchStats = async () => {
     const { count: totalUsers } = await supabase
-      .from('profiles')
+      .from('profiles' as any)
       .select('*', { count: 'exact', head: true });
 
     const today = new Date().toISOString().split('T')[0];
     const { count: todayCheckIns } = await supabase
-      .from('attendance_records')
+      .from('attendance_records' as any)
       .select('*', { count: 'exact', head: true })
       .gte('check_in_time', today);
 
     const { count: totalCheckIns } = await supabase
-      .from('attendance_records')
+      .from('attendance_records' as any)
       .select('*', { count: 'exact', head: true });
 
     setStats({
@@ -85,8 +85,8 @@ export default function AdminDashboard() {
     const newRole = currentRole === 'admin' ? 'user' : 'admin';
     
     const { error } = await supabase
-      .from('user_roles')
-      .update({ role: newRole })
+      .from('user_roles' as any)
+      .update({ role: newRole } as any)
       .eq('user_id', userId);
 
     if (error) {

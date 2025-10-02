@@ -30,13 +30,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (session?.user) {
           // Fetch user role
           setTimeout(async () => {
-            const { data } = await supabase
+            const { data } = await (supabase as any)
               .from('user_roles')
               .select('role')
               .eq('user_id', session.user.id)
-              .single();
+              .maybeSingle();
             
-            setRole(data?.role ?? null);
+            setRole((data?.role as AppRole) ?? null);
             setLoading(false);
           }, 0);
         } else {
@@ -52,13 +52,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        supabase
+        (supabase as any)
           .from('user_roles')
           .select('role')
           .eq('user_id', session.user.id)
-          .single()
-          .then(({ data }) => {
-            setRole(data?.role ?? null);
+          .maybeSingle()
+          .then(({ data }: any) => {
+            setRole((data?.role as AppRole) ?? null);
             setLoading(false);
           });
       } else {
