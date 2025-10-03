@@ -55,14 +55,20 @@ export default function UserDashboard() {
         videoRef.current.srcObject = stream;
         streamRef.current = stream;
         
-        // Wait for video to be ready
-        videoRef.current.onloadedmetadata = () => {
-          videoRef.current?.play();
-          console.log('Video playing, dimensions:', videoRef.current?.videoWidth, 'x', videoRef.current?.videoHeight);
-        };
-        
+        // Set UI to show camera immediately
         setIsCameraActive(true);
-        console.log('Camera active, video element configured');
+        console.log('UI updated to show camera');
+        
+        // Wait for video to be ready and start playing
+        videoRef.current.onloadedmetadata = () => {
+          if (videoRef.current) {
+            videoRef.current.play().then(() => {
+              console.log('Video playing, dimensions:', videoRef.current?.videoWidth, 'x', videoRef.current?.videoHeight);
+            }).catch(err => {
+              console.error('Error playing video:', err);
+            });
+          }
+        };
         
         toast({
           title: 'Camera Ready',
