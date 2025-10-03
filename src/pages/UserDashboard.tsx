@@ -20,6 +20,12 @@ export default function UserDashboard() {
   const streamRef = useRef<MediaStream | null>(null);
   const { toast } = useToast();
 
+  console.log('UserDashboard render - isCameraActive:', isCameraActive, 'capturedImage:', !!capturedImage);
+
+  useEffect(() => {
+    console.log('isCameraActive changed to:', isCameraActive);
+  }, [isCameraActive]);
+
   useEffect(() => {
     if (user) {
       fetchRecords();
@@ -38,6 +44,7 @@ export default function UserDashboard() {
   };
 
   const startCamera = async () => {
+    console.log('startCamera called - current isCameraActive:', isCameraActive);
     try {
       console.log('Requesting camera access...');
       const stream = await navigator.mediaDevices.getUserMedia({ 
@@ -49,19 +56,22 @@ export default function UserDashboard() {
         audio: false 
       });
       
-      console.log('Camera access granted, stream:', stream);
+      console.log('Camera access granted, stream active:', stream.active, 'tracks:', stream.getTracks().length);
       
       if (videoRef.current) {
+        console.log('Setting srcObject on video element');
         videoRef.current.srcObject = stream;
         streamRef.current = stream;
         
+        console.log('About to set isCameraActive to true');
         // Set UI to show camera immediately
         setIsCameraActive(true);
-        console.log('UI updated to show camera');
+        console.log('setIsCameraActive(true) called');
         
         // Wait for video to be ready and start playing
         videoRef.current.onloadedmetadata = () => {
           if (videoRef.current) {
+            console.log('Video metadata loaded, attempting to play...');
             videoRef.current.play().then(() => {
               console.log('Video playing, dimensions:', videoRef.current?.videoWidth, 'x', videoRef.current?.videoHeight);
             }).catch(err => {
@@ -74,6 +84,8 @@ export default function UserDashboard() {
           title: 'Camera Ready',
           description: 'Position yourself and click capture when ready.',
         });
+      } else {
+        console.error('videoRef.current is null!');
       }
     } catch (error: any) {
       console.error('Camera error:', error);
