@@ -39,20 +39,32 @@ export default function UserDashboard() {
 
   const startCamera = async () => {
     try {
+      console.log('Requesting camera access...');
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: { facingMode: 'user' },
         audio: false 
       });
       
+      console.log('Camera access granted, stream:', stream);
+      
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         streamRef.current = stream;
         setIsCameraActive(true);
+        console.log('Camera active, video element configured');
+        
+        toast({
+          title: 'Camera Ready',
+          description: 'Position yourself and click capture when ready.',
+        });
       }
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Camera error:', error);
       toast({
         title: 'Camera Error',
-        description: 'Unable to access camera. Please grant permissions.',
+        description: error.name === 'NotAllowedError' 
+          ? 'Camera permission denied. Please allow camera access in your browser settings.'
+          : 'Unable to access camera. Please check your device has a camera.',
         variant: 'destructive',
       });
     }
@@ -67,15 +79,29 @@ export default function UserDashboard() {
   };
 
   const capturePhoto = () => {
+    console.log('Capturing photo...');
     if (videoRef.current && canvasRef.current) {
       const context = canvasRef.current.getContext('2d');
-      if (context) {
+      if (context && videoRef.current.videoWidth > 0) {
         canvasRef.current.width = videoRef.current.videoWidth;
         canvasRef.current.height = videoRef.current.videoHeight;
         context.drawImage(videoRef.current, 0, 0);
         const imageData = canvasRef.current.toDataURL('image/jpeg');
+        console.log('Photo captured successfully');
         setCapturedImage(imageData);
         stopCamera();
+        
+        toast({
+          title: 'Photo Captured',
+          description: 'Add notes and submit your check-in.',
+        });
+      } else {
+        console.error('Video not ready or invalid dimensions');
+        toast({
+          title: 'Capture Failed',
+          description: 'Camera is not ready yet. Please wait a moment.',
+          variant: 'destructive',
+        });
       }
     }
   };
@@ -91,25 +117,34 @@ export default function UserDashboard() {
     }
 
     setLoading(true);
+    console.log('Starting check-in submission...');
     try {
       // Convert base64 to blob
       const response = await fetch(capturedImage);
       const blob = await response.blob();
+      console.log('Image converted to blob:', blob.size, 'bytes');
       
       // Upload to storage
       const fileName = `${user?.id}/${Date.now()}.jpg`;
+      console.log('Uploading to storage:', fileName);
       const { error: uploadError } = await supabase.storage
         .from('attendance-photos')
         .upload(fileName, blob);
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        throw uploadError;
+      }
+      console.log('Upload successful');
 
       // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('attendance-photos')
         .getPublicUrl(fileName);
+      console.log('Public URL:', publicUrl);
 
       // Create attendance record
+      console.log('Creating attendance record...');
       const { error: insertError } = await supabase
         .from('attendance_records' as any)
         .insert({
@@ -119,7 +154,11 @@ export default function UserDashboard() {
           status: 'present',
         } as any);
 
-      if (insertError) throw insertError;
+      if (insertError) {
+        console.error('Insert error:', insertError);
+        throw insertError;
+      }
+      console.log('Attendance record created successfully');
 
       toast({
         title: 'Check-in Successful!',
@@ -130,6 +169,7 @@ export default function UserDashboard() {
       setNotes('');
       fetchRecords();
     } catch (error: any) {
+      console.error('Check-in error:', error);
       toast({
         title: 'Error',
         description: error.message,
