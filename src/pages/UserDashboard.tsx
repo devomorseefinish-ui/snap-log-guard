@@ -224,18 +224,21 @@ export default function UserDashboard() {
               <CardDescription>Capture your photo and submit attendance</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              <div className="text-xs text-muted-foreground mb-2">
+                Debug: Camera Active = {isCameraActive ? 'YES' : 'NO'}, Has Image = {capturedImage ? 'YES' : 'NO'}
+              </div>
               {!capturedImage ? (
                 <div className="space-y-4">
                   {isCameraActive ? (
-                    <div className="relative bg-black rounded-lg overflow-hidden min-h-[400px]">
+                    <div className="relative bg-black rounded-lg overflow-hidden" style={{ minHeight: '400px' }}>
                       <video
                         ref={videoRef}
                         autoPlay
                         playsInline
                         muted
-                        className="w-full h-full object-cover"
+                        style={{ width: '100%', height: '100%', minHeight: '400px', objectFit: 'cover' }}
                       />
-                      <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-3">
+                      <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-3 z-10">
                         <Button
                           onClick={stopCamera}
                           variant="outline"
