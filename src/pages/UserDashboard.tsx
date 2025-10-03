@@ -41,7 +41,11 @@ export default function UserDashboard() {
     try {
       console.log('Requesting camera access...');
       const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'user' },
+        video: { 
+          facingMode: 'user',
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        },
         audio: false 
       });
       
@@ -50,6 +54,13 @@ export default function UserDashboard() {
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         streamRef.current = stream;
+        
+        // Wait for video to be ready
+        videoRef.current.onloadedmetadata = () => {
+          videoRef.current?.play();
+          console.log('Video playing, dimensions:', videoRef.current?.videoWidth, 'x', videoRef.current?.videoHeight);
+        };
+        
         setIsCameraActive(true);
         console.log('Camera active, video element configured');
         
@@ -210,21 +221,31 @@ export default function UserDashboard() {
               {!capturedImage ? (
                 <div className="space-y-4">
                   {isCameraActive ? (
-                    <div className="relative bg-black rounded-lg overflow-hidden">
+                    <div className="relative bg-black rounded-lg overflow-hidden min-h-[400px]">
                       <video
                         ref={videoRef}
                         autoPlay
                         playsInline
-                        className="w-full aspect-video"
+                        muted
+                        className="w-full h-full object-cover"
                       />
-                      <Button
-                        onClick={capturePhoto}
-                        className="absolute bottom-4 left-1/2 -translate-x-1/2"
-                        size="lg"
-                      >
-                        <Camera className="w-5 h-5 mr-2" />
-                        Capture Photo
-                      </Button>
+                      <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-3">
+                        <Button
+                          onClick={stopCamera}
+                          variant="outline"
+                          size="lg"
+                          className="bg-background/80 backdrop-blur"
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          onClick={capturePhoto}
+                          size="lg"
+                        >
+                          <Camera className="w-5 h-5 mr-2" />
+                          Capture Photo
+                        </Button>
+                      </div>
                     </div>
                   ) : (
                     <div className="border-2 border-dashed rounded-lg p-12 text-center">
